@@ -10,34 +10,61 @@ function dirToLinks($path, $level = 0) {
         return;
     }
 
-    $iterator = new DirectoryIterator($path);
-    echo "<ul>";
+    $cacheFile = __DIR__ . '/../cache/' . md5($path) . '.json';
+    // Se o cache existir e for recente, use-o
+    if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 60) {
+        $cachedData = json_decode(file_get_contents($cacheFile), true);
+    } else {
+        // Caso contrário, gere a lista de arquivos
+        $iterator = new DirectoryIterator($path);
+        $cachedData = [];
 
-    foreach ($iterator as $item) {
-        if ($item->isDot() || ($level === 0 && $item->getFilename() === 'index.php')) {
-            continue;
+        foreach ($iterator as $item) {
+            if ($item->isDot() || ($level === 0 && $item->getFilename() === 'index.php')) {
+                continue;
+            }
+
+            $fullPath = $item->getPathname();
+            $relativePath = str_replace($_SERVER['DOCUMENT_ROOT'], '', $fullPath);
+            $itemData = [
+                'name' => $item->getFilename(),
+                'path' => $relativePath,
+                'type' => $item->isDir() ? 'dir' : 'file',
+            ];
+
+            $cachedData[] = $itemData;
         }
 
-        $fullPath = $item->getPathname();
-        $relativePath = str_replace($_SERVER['DOCUMENT_ROOT'], '', $fullPath);
+        // Salva o cache
+        file_put_contents($cacheFile, json_encode($cachedData));
+    }
 
-        if ($item->isFile()) {
-            $finfo = new finfo(FILEINFO_MIME_TYPE);
-            $mimeType = $finfo->file($fullPath) ?: 'application/octet-stream';
-            echo "<li>📄 <a target=\"_blank\" href=\"request_file.php?file=$relativePath\" relative-path=\"$relativePath\" mimetype=\"$mimeType\">{$item->getFilename()}</a></li>";
-        } elseif ($item->isDir()) {
+    // Separar os diretórios e arquivos
+    $dirs = array_filter($cachedData, fn($item) => $item['type'] === 'dir');
+    $files = array_filter($cachedData, fn($item) => $item['type'] === 'file');
+
+    // Ordenar por nome
+    usort($dirs, fn($a, $b) => strcmp($a['name'], $b['name']));
+    usort($files, fn($a, $b) => strcmp($a['name'], $b['name']));
+
+    // Concatenar diretórios primeiro e depois arquivos
+    $sortedData = array_merge($dirs, $files);
+
+    echo "<ul>";
+    foreach ($sortedData as $item) {
+        if ($item['type'] === 'file') {
+            echo "<li>📄 <a target=\"_blank\" href=\"request_file.php?file={$item['path']}\" relative-path=\"{$item['path']}\">{$item['name']}</a></li>";
+        } elseif ($item['type'] === 'dir') {
             echo "<li><details>";
-            echo "<summary>📁 {$item->getFilename()}</summary>";
-            dirToLinks($fullPath, $level + 1);
+            echo "<summary>📁 {$item['name']}</summary>";
+            dirToLinks($path . '/' . $item['name'], $level + 1);
             echo "</details></li>";
         }
     }
-
     echo "</ul>";
 }
 
+// Caminho do diretório
 $path = realpath(__DIR__ . '/../private'); // Evita problemas de path
 dirToLinks($path);
 ?>
-
-
