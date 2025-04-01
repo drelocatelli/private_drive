@@ -12,7 +12,7 @@ function dirToLinks($path, $level = 0) {
 
     $cacheFile = __DIR__ . '/../cache/' . md5($path) . '.json';
     // Se o cache existir e for recente, use-o
-    if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 60) {
+    if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 300) {
         $cachedData = json_decode(file_get_contents($cacheFile), true);
     } else {
         // Caso contrário, gere a lista de arquivos
@@ -31,6 +31,13 @@ function dirToLinks($path, $level = 0) {
                 'path' => $relativePath,
                 'type' => $item->isDir() ? 'dir' : 'file',
             ];
+
+            // Adicionando mimetype apenas se for um arquivo
+            if ($item->isFile()) {
+                $itemData['mimetype'] = mime_content_type($fullPath);
+            } else {
+                $itemData['mimetype'] = null;
+            }
 
             $cachedData[] = $itemData;
         }
@@ -53,7 +60,8 @@ function dirToLinks($path, $level = 0) {
     echo "<ul>";
     foreach ($sortedData as $item) {
         if ($item['type'] === 'file') {
-            echo "<li>📄 <a target=\"_blank\" href=\"request_file.php?file={$item['path']}\" relative-path=\"{$item['path']}\">{$item['name']}</a></li>";
+            // Usando o mimetype na tag <a>
+            echo "<li>📄 <a target=\"_blank\" href=\"request_file.php?file={$item['path']}\" relative-path=\"{$item['path']}\" mimetype=\"{$item['mimetype']}\">{$item['name']}</a></li>";
         } elseif ($item['type'] === 'dir') {
             echo "<li><details>";
             echo "<summary>📁 {$item['name']}</summary>";

@@ -86,7 +86,7 @@ require_once(__DIR__  . '/vars.php');
                         this.filterPdfFiles();
                     });
 
-
+                    
                 } catch (err) {
                     if (err.name === 'AbortError') {
                         console.warn('Requisição abortada');
@@ -101,6 +101,7 @@ require_once(__DIR__  . '/vars.php');
             filterPdfFiles() {
                 const pdfs = document.querySelectorAll('a[mimetype="application/pdf"]');
 
+                console.log({pdfs})
                 pdfs.forEach((pdf) => {
                     pdf.target = '_self';
                     const {parentElement} = pdf;
