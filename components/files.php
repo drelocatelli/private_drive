@@ -1,33 +1,34 @@
 <?php
 if (session_status() == PHP_SESSION_NONE) {
-    session_start(); // Inicia a sessão se ainda não estiver ativa
- }
+    session_start();
+}
 require_once(__DIR__ . '/../session_verification.php');
 
-function dirToLinks($path = __DIR__, $baseUrl = '', $level = 0) {
-    $items = scandir($path);
+function dirToLinks($path, $level = 0) {
+    if (!is_readable($path)) {
+        echo "<p>Erro: O diretório não pode ser lido ($path).</p>";
+        return;
+    }
 
+    $iterator = new DirectoryIterator($path);
     echo "<ul>";
 
-    foreach($items as $item) {
-        // Ignorar itens ocultos e o index.php na raiz
-        if (strpos($item, '.') === 0 || ($level === 0 && $item === 'index.php')) {
+    foreach ($iterator as $item) {
+        if ($item->isDot() || ($level === 0 && $item->getFilename() === 'index.php')) {
             continue;
         }
 
-        $fullPath = realpath($path . DIRECTORY_SEPARATOR . $item);
+        $fullPath = $item->getPathname();
         $relativePath = str_replace($_SERVER['DOCUMENT_ROOT'], '', $fullPath);
 
-        // Se for um arquivo, exibir link direto
-        if (is_file($fullPath)) {
-            $path = __DIR__ . '';
-            $mimeType = mime_content_type($fullPath);
-            echo "<li>📄 <a href=\"request_file.php?file=$relativePath\" relative-path=\"$relativePath\" mimetype=\"$mimeType\">$item</a></li>";
-        }
-        // Se for um diretório, exibir link para navegar e listar subdiretórios
-        else if (is_dir($fullPath)) {
-            echo "<li><details><summary>📁 $item</summary>";
-            dirToLinks($fullPath, $relativePath, $level + 1);
+        if ($item->isFile()) {
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($fullPath) ?: 'application/octet-stream';
+            echo "<li>📄 <a target=\"_blank\" href=\"request_file.php?file=$relativePath\" relative-path=\"$relativePath\" mimetype=\"$mimeType\">{$item->getFilename()}</a></li>";
+        } elseif ($item->isDir()) {
+            echo "<li><details>";
+            echo "<summary>📁 {$item->getFilename()}</summary>";
+            dirToLinks($fullPath, $level + 1);
             echo "</details></li>";
         }
     }
@@ -35,10 +36,8 @@ function dirToLinks($path = __DIR__, $baseUrl = '', $level = 0) {
     echo "</ul>";
 }
 
-// Exibir os diretórios e arquivos como links
-$path = __DIR__ . '/../private';
+$path = realpath(__DIR__ . '/../private'); // Evita problemas de path
 dirToLinks($path);
-
 ?>
 
 

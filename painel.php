@@ -25,8 +25,12 @@ require_once(__DIR__  . '/vars.php');
             </div>
             <button v-show="!showingFileList" v-on:click="showingFileList = true" style="margin: 10px 0;">Fechar</button>
             <div id="file_list" v-show="showingFileList">
+                <div v-show="isLoading" style="margin-top: 1rem;"> 
+                    Obtendo lista de arquivos...
+                </div>
+                <div id="file-contents"></div>
                 <?php
-                    include_once  __DIR__ . '/components/files.php';
+                    // include_once  __DIR__ . '/components/files.php';
                 ?>
             </div>
             <div id="loadingFile" style="display: none;">Carregando conteúdo...</div>
@@ -44,24 +48,72 @@ require_once(__DIR__  . '/vars.php');
         data: () => ({
             showingFileList: true,
             currentFileUrl: null,
+            isLoading: true,
+            abortController: null
         }),
         mounted() {
-            this.filterPdfFiles();
+            this.loadFiles();
+        },
+        beforeUnmount() {
+            if (this.abortController) {
+                this.abortController.abort();
+            }
         },
         methods: {
+            async loadFiles() {
+                if (this.abortController) {
+                    this.abortController.abort(); // Cancela requisição anterior, se houver
+                }
+
+                this.abortController = new AbortController();
+                const { signal } = this.abortController;
+
+                try {
+                    const fileContents = document.querySelector('#file-contents');
+                    fileContents.innerHTML = '';
+                    this.isLoading = true;
+
+                    console.time('fetch files'); // Medir tempo de carregamento
+                    const response = await fetch('components/files.php', { signal });
+                    console.timeEnd('fetch files');
+
+                    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+
+                    const data = await response.text();
+
+                    requestAnimationFrame(() => {
+                        fileContents.innerHTML = data;
+                        this.filterPdfFiles();
+                    });
+
+
+                } catch (err) {
+                    if (err.name === 'AbortError') {
+                        console.warn('Requisição abortada');
+                    } else {
+                        console.error('Erro ao carregar arquivos', err);
+                        alert('Ocorreu um erro ao carregar arquivos');
+                    }
+                } finally {
+                    this.isLoading = false;
+                }
+            },
             filterPdfFiles() {
                 const pdfs = document.querySelectorAll('a[mimetype="application/pdf"]');
+
                 pdfs.forEach((pdf) => {
+                    pdf.target = '_self';
                     const {parentElement} = pdf;
                     const baixarEl = document.createElement('a');
                     baixarEl.href = pdf.href;
                     baixarEl.target = '_blank';
-                    baixarEl.innerHTML = '<button><i class="fa-solid fa-download"></i></button>';
-
+                    baixarEl.innerHTML = '<button class="baixarEl"><i class="fa-solid fa-download"></i></button>';
+                    
                     const span = document.createElement('span');
                     span.innerHTML = '&nbsp;&nbsp;&nbsp;'
                     parentElement.appendChild(span);
                     parentElement.appendChild(baixarEl);
+
                     pdf.onclick = (e) => {
                         e.preventDefault();
                         const relativePath = e.target.getAttribute('relative-path');
