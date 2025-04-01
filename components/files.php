@@ -10,11 +10,15 @@ function dirToLinks($path, $level = 0) {
         return;
     }
 
+    $cachedData = [];
+
     $cacheFile = __DIR__ . '/../cache/' . md5($path) . '.json';
     // Se o cache existir e for recente, use-o
-    if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 300) {
+    if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 1000) {
         $cachedData = json_decode(file_get_contents($cacheFile), true);
-    } else {
+    }
+
+    if(empty($cachedData) || isset($_GET['force'])) {
         // Caso contrário, gere a lista de arquivos
         $iterator = new DirectoryIterator($path);
         $cachedData = [];

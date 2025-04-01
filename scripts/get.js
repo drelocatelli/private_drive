@@ -1,7 +1,8 @@
+
 async function getPdf(container, url) {
-    const loadingEl = document.querySelector('#loadingFile');
     
     try {
+        const loadingEl = document.querySelector('#loadingFile');
         loadingEl.style.display = 'block';
         // Obtém o documento PDF
         const pdf = await pdfjsLib.getDocument(url).promise;
@@ -44,5 +45,43 @@ async function getPdf(container, url) {
     }
 }
 
-// Exportando a função (caso seja usada como módulo ES6)
-export { getPdf };
+async function getDocx(container, url) {
+    const loadingEl = document.querySelector('#loadingFile');
+    loadingEl.style.display = 'block';
+    container.style.display = 'none';
+
+    container.innerHTML = '';
+    
+    try {
+        const fileResponse = await fetch(url);
+        const fileBlob = await fileResponse.blob();
+        
+        // Regex para extrair o nome do arquivo (sem a extensão)
+        const regex = /(?<=file=%2F[^%]+%2F[^%]+%2F)([^%]+)(?=\.)/;
+        const fileName = url.match(regex)[0];
+
+        const formData = new FormData();
+        formData.append('docxFile', fileBlob, `${fileName}.docx`);
+
+        // Envia o arquivo para o backend
+        const getFile = await fetch('components/office.php', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+
+        // Espera que o backend retorne o HTML
+        const htmlContent = await getFile.text();
+
+        // Exibe o HTML na página
+        container.innerHTML = htmlContent;
+        container.style.display = 'flex';
+
+        loadingEl.style.display = 'none'; // Esconde o loading
+    } catch (err) {
+        console.error(err);
+        loadingEl.style.display = 'none'; // Esconde o loading em caso de erro
+    }
+}
+
+export { getPdf, getDocx };

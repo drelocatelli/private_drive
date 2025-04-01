@@ -9,10 +9,12 @@ require_once(__DIR__  . '/vars.php');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf_viewer.min.css" integrity="sha512-bt54/qzXTxutlNalAuK/V3dxe1T7ZDqeEYbZPle3G1kOH+K1zKlQE0ZOkdYVwPDxdCFrdLHwneslj7sA5APizQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf_viewer.min.css" integrity="sha512-bt54/qzXTxutlNalAuK/V3dxe1T7ZDqeEYbZPle3G1kOH+K1zKlQE0ZOkdYVwPDxdCFrdLHwneslj7sA5APizQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 
     <title>Files</title>
 </head>
@@ -40,9 +42,9 @@ require_once(__DIR__  . '/vars.php');
     </div>
 </body>
 </html>
-
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script type="module">
-    import { getPdf } from './scripts/get_pdf.js';
+    import { getPdf, getDocx } from './scripts/get.js';
 
     const app = Vue.createApp({
         data: () => ({
@@ -84,6 +86,8 @@ require_once(__DIR__  . '/vars.php');
                     requestAnimationFrame(() => {
                         fileContents.innerHTML = data;
                         this.filterPdfFiles();
+                        this.filterDocxFiles();
+                        this.filterDocFiles();
                     });
 
                     
@@ -98,39 +102,49 @@ require_once(__DIR__  . '/vars.php');
                     this.isLoading = false;
                 }
             },
-            filterPdfFiles() {
-                const pdfs = document.querySelectorAll('a[mimetype="application/pdf"]');
+            createDownloadBtn(element) {
+                const {parentElement} = element;
+                const baixarEl = document.createElement('a');
+                baixarEl.href = element.href;
+                baixarEl.target = '_blank';
+                baixarEl.innerHTML = '<button class="baixarEl"><i class="fa-solid fa-download"></i></button>';
+                const span = document.createElement('span');
+                span.innerHTML = '&nbsp;&nbsp;&nbsp;'
+                parentElement.appendChild(span);
+                parentElement.appendChild(baixarEl);
+            },
+            getFile(elements, getCb, cbItems) {
+                elements.forEach((element) => {
+                    this.createDownloadBtn(element);
+                    element.target = '_self';
 
-                console.log({pdfs})
-                pdfs.forEach((pdf) => {
-                    pdf.target = '_self';
-                    const {parentElement} = pdf;
-                    const baixarEl = document.createElement('a');
-                    baixarEl.href = pdf.href;
-                    baixarEl.target = '_blank';
-                    baixarEl.innerHTML = '<button class="baixarEl"><i class="fa-solid fa-download"></i></button>';
-                    
-                    const span = document.createElement('span');
-                    span.innerHTML = '&nbsp;&nbsp;&nbsp;'
-                    parentElement.appendChild(span);
-                    parentElement.appendChild(baixarEl);
-
-                    pdf.onclick = (e) => {
-                        e.preventDefault();
-                        const relativePath = e.target.getAttribute('relative-path');
+                    element.onclick = (event) => {
+                        event.preventDefault();
 
                         this.showingFileList = false;
+
+                        const relativePath = event.target.getAttribute('relative-path');
                         this.currentFileUrl = 'request_file.php?file=' + encodeURIComponent(relativePath);
                         
                         this.$nextTick(() => {
-                            getPdf(this.$refs.file_content, this.currentFileUrl);
+                            getCb()
                         });
-
                     }
                 });
+            },
+            filterDocFiles() {
+                const docxs = document.querySelectorAll('a[mimetype="application/msword"]');
+                // this.getFile(docxs, async () => await getDocx( this.$refs.file_content, this.currentFileUrl))
+            },
+            filterDocxFiles() {
+                const docxs = document.querySelectorAll('a[mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"]');
+                this.getFile(docxs, async () => await getDocx( this.$refs.file_content, this.currentFileUrl))
+            },
+            filterPdfFiles() {
+                const pdfs = document.querySelectorAll('a[mimetype="application/pdf"]');
+                this.getFile(pdfs, async () => await getPdf( this.$refs.file_content, this.currentFileUrl));
             }
         }
-
     });
 
     app.mount('#app');
@@ -147,6 +161,10 @@ require_once(__DIR__  . '/vars.php');
         width: 90vw;
     }
 
+    .page {
+        background: #fff;
+        padding: 1rem;
+    }
     
 
     #file_list {
@@ -224,10 +242,25 @@ require_once(__DIR__  . '/vars.php');
         width: fit-content;
     }
 
+    #documento {
+        background: #f9f9f9;
+        padding: 1rem;
+        width: 80vw;
+        border-radius: 10px;
+        height: 100vh;
+        overflow-y: auto;
+        margin: 10px 0;
+    }
+
     @media screen and (min-width: 1000px) {
         #file-content canvas {
             width: 50vw!important;
         }
+
+        #documento {
+            width: 60vw;
+        }
+
     }
 </style>
 
