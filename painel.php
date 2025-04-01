@@ -94,6 +94,8 @@ require_once(__DIR__  . '/vars.php');
         width: 90vw;
     }
 
+    
+
     #file_list {
         & a {
             color: cadetblue;
@@ -167,6 +169,12 @@ require_once(__DIR__  . '/vars.php');
 
     ul:has(details) {
         width: fit-content;
+    }
+
+    @media screen and (min-width: 1000px) {
+        #file-content canvas {
+            width: 50vw!important;
+        }
     }
 </style>
 
