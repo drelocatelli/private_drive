@@ -12,14 +12,18 @@ async function getPdf(container, url) {
         container.style.display = 'flex';
         loadingEl.style.display = 'none';
 
+        const pageEl = document.createElement('div');
+        pageEl.classList.add('pageEl');
+
         // Renderiza todas as páginas
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
 
             // Cria um canvas para a página atual
             const canvas = document.createElement('canvas');
-            container.appendChild(document.createElement('br'));
-            container.appendChild(canvas);
+            pageEl.appendChild(document.createElement('br'));
+            pageEl.appendChild(canvas);
+            container.appendChild(pageEl);
             const context = canvas.getContext('2d');
 
             // Define as dimensões do viewport

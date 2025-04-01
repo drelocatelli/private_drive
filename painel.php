@@ -252,6 +252,11 @@ require_once(__DIR__  . '/vars.php');
         margin: 10px 0;
     }
 
+    .pageEl {
+        height: 100vh;
+        overflow-y: auto;
+    }
+
     @media screen and (min-width: 1000px) {
         #file-content canvas {
             width: 50vw!important;
