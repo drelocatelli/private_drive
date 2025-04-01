@@ -44,7 +44,7 @@ require_once(__DIR__  . '/vars.php');
 </html>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script type="module">
-    import { getPdf, getDocx } from './scripts/get.js';
+    import { getPdf, getDocx, getVideo } from './scripts/get.js';
 
     const app = Vue.createApp({
         data: () => ({
@@ -88,6 +88,7 @@ require_once(__DIR__  . '/vars.php');
                         this.filterPdfFiles();
                         this.filterDocxFiles();
                         this.filterDocFiles();
+                        this.filterVideoFiles();
                     });
 
                     
@@ -143,6 +144,10 @@ require_once(__DIR__  . '/vars.php');
             filterPdfFiles() {
                 const pdfs = document.querySelectorAll('a[mimetype="application/pdf"]');
                 this.getFile(pdfs, async () => await getPdf( this.$refs.file_content, this.currentFileUrl));
+            },
+            filterVideoFiles() {
+                const videos = document.querySelectorAll('a[mimetype="video/mp4"]');
+                this.getFile(videos, async () => await getVideo( this.$refs.file_content, this.currentFileUrl, 'video/mp4'));
             }
         }
     });

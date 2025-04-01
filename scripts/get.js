@@ -88,4 +88,28 @@ async function getDocx(container, url) {
     }
 }
 
-export { getPdf, getDocx };
+async function getVideo(container, url, videoMimeType) {
+    const loadingEl = document.querySelector('#loadingFile');
+    loadingEl.style.display = 'block';
+    container.style.display = 'none';
+
+    container.innerHTML = '';
+
+    const videoEl = document.createElement('video');
+    videoEl.setAttribute('controls', '');
+    videoEl.setAttribute('preload', 'auto');
+
+    const source = document.createElement('source');
+    source.src = url;
+    source.type = videoMimeType;
+
+    videoEl.appendChild(source);
+    container.appendChild(videoEl);
+
+    container.style.display = 'block';
+    loadingEl.style.display = 'none';
+
+
+}
+
+export { getPdf, getDocx, getVideo };

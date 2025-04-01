@@ -1,8 +1,16 @@
+<IfModule mod_headers.c>
+    # Verificar se os arquivos são de vídeo (mp4, webm ou ogv)
+    <FilesMatch "\.(mp4|webm|ogv)$">
+        # Adicionar o cabeçalho Accept-Ranges para permitir intervalos (seek)
+        Header set Accept-Ranges bytes
+    </FilesMatch>
+</IfModule>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Verificar se o acesso é à pasta "private"
-    RewriteCond %{REQUEST_URI} /private/
-    RewriteRule ^.*$ session_verification.php [L]
-    
+    # Verificar se o acesso é à pasta "private" e redirecionar para session_verification.php
+    RewriteCond %{REQUEST_URI} ^/private/ [NC]
+    RewriteCond %{REQUEST_URI} !/session_verification.php$
+    RewriteRule ^.*$ /session_verification.php [L]
 </IfModule>
