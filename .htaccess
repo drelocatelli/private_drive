@@ -1,0 +1,8 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Verificar se o acesso é à pasta "private"
+    RewriteCond %{REQUEST_URI} /private/
+    RewriteRule ^.*$ session_verification.php [L]
+    
+</IfModule>
