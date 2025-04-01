@@ -1,8 +1,12 @@
-vendor
-composer.lock
-.env
+# Manter as pastas 'private' e 'cache', mas ignorar o conteúdo delas
+!private/
+!cache/
+
+# Ignorar tudo dentro dessas pastas
 private/*
 cache/*
 
-!private/
-!cache/
+# Ignorar arquivos específicos
+vendor
+composer.lock
+.env
