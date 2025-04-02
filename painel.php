@@ -16,6 +16,10 @@ require_once(__DIR__  . '/vars.php');
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 
+    <link href="https://vjs.zencdn.net/8.20.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.20.0/video.min.js"></script>
+    
+
     <title>Files</title>
 </head>
 <body>
@@ -178,8 +182,13 @@ require_once(__DIR__  . '/vars.php');
 
             & video {
                 width: 70vw;
+                height: 70vh;
             }
         }
+    }
+
+    .video-js[tabindex="-1"] {
+        width: 70vw;
     }
 
     #file_list {
@@ -216,6 +225,8 @@ require_once(__DIR__  . '/vars.php');
         flex-direction: column;
         align-items: center;
         background: #2A2A2E;
+        width: -moz-available;
+        height: -moz-available;
     }
 
     #fileEmbed {
@@ -223,6 +234,12 @@ require_once(__DIR__  . '/vars.php');
         width: 100vw;
         position: absolute;
     }
+
+    div#file-content:has(video) {
+        height: max-content;
+        width: -moz-available;
+    }
+    
     h3 {
         padding: 0;
         margin: 0;
@@ -271,8 +288,8 @@ require_once(__DIR__  . '/vars.php');
     }
 
     .pageEl {
-        height: 100vh;
-        overflow-y: auto;
+        /* height: 100vh; */
+        overflow-y: unset;
     }
 
     @media screen and (min-width: 1000px) {

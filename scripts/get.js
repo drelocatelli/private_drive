@@ -98,23 +98,29 @@ async function getVideo(container, url, videoMimeType) {
     const page = document.createElement('div');
     page.classList.add('page');
     page.id = 'videos';
-    
+
     const videoEl = document.createElement('video');
+    videoEl.id = 'meu-video'; // Atribui um id único
+    videoEl.classList.add('video-js');
     videoEl.setAttribute('controls', '');
     videoEl.setAttribute('preload', 'auto');
     videoEl.setAttribute('autoplay', '');
+    videoEl.setAttribute('data-setup', '{}');
 
     const source = document.createElement('source');
     source.src = url;
     source.type = videoMimeType;
 
     videoEl.appendChild(source);
-    page.appendChild(videoEl)
+    page.appendChild(videoEl);
     container.appendChild(page);
+
+    // Inicializa o Video.js após adicionar o vídeo ao DOM
+    var player = videojs('meu-video');
 
     container.style.display = 'block';
     loadingEl.style.display = 'none';
-
 }
+
 
 export { getPdf, getDocx, getVideo };
