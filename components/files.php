@@ -4,15 +4,28 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 require_once(__DIR__ . '/../session_verification.php');
 
+function cleanOldCache($cacheDir, $maxAge = 86400) { // 86400 segundos = 1 dia
+    $files = glob($cacheDir . '/*.json');
+    foreach ($files as $file) {
+        // Verifica se o arquivo é mais antigo que o período máximo e apaga
+        if (filemtime($file) < time() - $maxAge) {
+            unlink($file);
+        }
+    }
+}
+
 function dirToLinks($path, $level = 0) {
     if (!is_readable($path)) {
-        echo "<p>Erro: O diretório não pode ser lido ($path).</p>";
+        echo "<p>Erro: O diretório não pode ser lido ($path), veja se há permissões (chmod).</p>";
         return;
     }
 
     $cachedData = [];
 
-    $cacheFile = __DIR__ . '/../cache/' . md5($path) . '.json';
+    $cacheDir = __DIR__ . '/../cache';
+    cleanOldCache($cacheDir); // Limpa caches antigos antes de usar
+
+    $cacheFile = $cacheDir . '/' . md5($path) . '.json';
     // Se o cache existir e for recente, use-o
     if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 1000) {
         $cachedData = json_decode(file_get_contents($cacheFile), true);

@@ -1,8 +1,8 @@
 
 async function getPdf(container, url) {
+    const loadingEl = document.querySelector('#loadingFile');
     
     try {
-        const loadingEl = document.querySelector('#loadingFile');
         loadingEl.style.display = 'block';
         // Obtém o documento PDF
         const pdf = await pdfjsLib.getDocument(url).promise;
@@ -95,20 +95,25 @@ async function getVideo(container, url, videoMimeType) {
 
     container.innerHTML = '';
 
+    const page = document.createElement('div');
+    page.classList.add('page');
+    page.id = 'videos';
+    
     const videoEl = document.createElement('video');
     videoEl.setAttribute('controls', '');
     videoEl.setAttribute('preload', 'auto');
+    videoEl.setAttribute('autoplay', '');
 
     const source = document.createElement('source');
     source.src = url;
     source.type = videoMimeType;
 
     videoEl.appendChild(source);
-    container.appendChild(videoEl);
+    page.appendChild(videoEl)
+    container.appendChild(page);
 
     container.style.display = 'block';
     loadingEl.style.display = 'none';
-
 
 }
 

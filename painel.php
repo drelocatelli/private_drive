@@ -169,8 +169,18 @@ require_once(__DIR__  . '/vars.php');
     .page {
         background: #fff;
         padding: 1rem;
+
+        &#videos {
+            background: unset;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            & video {
+                width: 70vw;
+            }
+        }
     }
-    
 
     #file_list {
         & a {
@@ -199,7 +209,10 @@ require_once(__DIR__  . '/vars.php');
 
     #file-content {
         display: none;
+        height: -webkit-fill-available;
+        position: absolute;
         padding: 1rem;
+        width: -webkit-fill-available;
         flex-direction: column;
         align-items: center;
         background: #2A2A2E;
